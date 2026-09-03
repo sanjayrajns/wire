@@ -25,8 +25,8 @@ The queue and the worker works fine
 I have used NOTIFY and LISTEN in the queue
 Both work fine
 
-But whenever there is an job incoming , NOTIFY notfies 
-but the queue says it's empty everytime , no jobs get executed 
+But whenever there is an job incoming , NOTIFY notfies \n 
+but the queue says it's empty everytime , no jobs get executed \n
 but when the restarts happen works perfectly fine 
 
 10 jobs 
