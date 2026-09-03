@@ -1,5 +1,5 @@
 import cp from "node:child_process";
-import { pgClient } from "../db/db.js";
+import { pool } from "../db.js";
 import type Jobs from "../types.js";
 
 export default function exectuejob(job: Jobs): Promise<void> {
@@ -20,21 +20,20 @@ export default function exectuejob(job: Jobs): Promise<void> {
 
         child.on("error", async (error) => {
             const failedquery = "UPDATE jobs SET status = $1 WHERE id = $2";
-            await pgClient.query(failedquery,["failed" , job.id] );
-            resolve();
+            await pool.query(failedquery,["failed" , job.id] );
         });
         child.on("close",async (code) => {
             if (code === 0) {
-                const updatequery = "UPDATE jobs SET stdout = $1 , stderr = $2 , status = $3 , exit_code = $4 WHERE id = $5  COMMUT"
-                await pgClient.query(updatequery,[stdout,stderr,"success",code , job.id]);
+                const updatequery = "UPDATE jobs SET stdout = $1 , stderr = $2 , status = $3 , exit_code = $4 WHERE id = $5 "
+                await pool.query(updatequery,[stdout,stderr,"success",code , job.id]);
                 console.log("Process Completed", code);
                 resolve();
             } else {
                 const updatstatus = "UPDATE jobs SET status = $1 WHERE id = $2 "
-                  await pgClient.query(updatstatus,["failed",job.id]);
+                  await pool.query(updatstatus,["failed",job.id]);
                   console.log("Process Failed",code)
                 resolve();
-            }
+            }   
         });
     });
 }

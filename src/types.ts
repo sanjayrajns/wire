@@ -1,4 +1,6 @@
 
+    import type { Request } from "express";
+
     type status = 
     "queued" | "running" | "completed" | "failed";
 
@@ -10,3 +12,4 @@
         stdout: "";
         stderr: "";
     }
+    export type JobRequesttype = Request<{}, {}, Jobs>;

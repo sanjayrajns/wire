@@ -1,25 +1,40 @@
-    import exectuejob from "./executor.js";
-    import { wakeupcall } from "../server.js";
-    import { pgClient } from "../db/db.js";
-    export default async function worker() {
-        while (true) {
-            const selectquery = "SELECT * FROM jobs WHERE status = $1 "
-            const jobqueue = await pgClient.query(selectquery,['queued']); 
-            console.log();
-            if (jobqueue.rowCount === 0) {
-                console.log("Queue empty. Worker going to sleep...");
-                await wakeupcall();
-                console.log("Worker woke up! Checking for new jobs...");
-                continue;
-            }
+import exectuejob from "./executor.js";
+import { waitforjob } from "./notifier.js";
+import { pool } from "../db.js";
+
+export  async function claimwork() {
+    const client = await pool.connect();
+        try {
+            await client.query("BEGIN")
+            const selectquery = "SELECT * FROM jobs WHERE status = $1 ORDER BY id LIMIT 2 FOR UPDATE SKIP LOCKED "
+            const jobqueue = await client.query(selectquery, ['queued']);
             const concurrent = jobqueue.rows;
-            const updatequery = "UPDATE jobs SET status = $1 WHERE id = $2 SKIP LOCKED "
-            for (const job of concurrent) {
-                await pgClient.query( updatequery , ["running" , job.id]);
+            if (concurrent.length === 0) {
+                await client.query("COMMIT");
+                return [];
             }
-    
-            await Promise.all(concurrent.map((job) => exectuejob(job)));
+            const updatequery = "UPDATE jobs SET status = $1 WHERE id = $2"
+            for (const job of concurrent) {
+                await client.query(updatequery, ["running", job.id]);
+            }
+            console.log("running");
+            await client.query("COMMIT")
+            return concurrent;
+        } catch (error) {
+            await client.query("ROLLBACK")
+            throw error;
+        } finally {client.release()}
+    } 
+
+export default async function worker() {
+    while(true) {
+        const jobs = await claimwork();
+        if(!jobs || jobs.length === 0){
+            console.log("Queue Empty");
+            await waitforjob();
+            console.log("Queue busy.........")
+            continue;
         }
+        await Promise.all(jobs.map((job) => exectuejob(job)));
     }
-    
-    
+} 
