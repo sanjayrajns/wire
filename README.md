@@ -23,15 +23,21 @@
 The queue and the worker works fine 
  
 I have used NOTIFY and LISTEN in the queue
+
 Both work fine
 
-But whenever there is an job incoming , NOTIFY notfies \n 
-but the queue says it's empty everytime , no jobs get executed \n
+But whenever there is an job incoming , NOTIFY notfies
+
+but the queue says it's empty everytime , no jobs get executed
+
 but when the restarts happen works perfectly fine 
 
 10 jobs 
+
 Worker 1  ---> 4 jobs
+
 Worker 2 ----> 4 jobs
+
 Worker 3 ----> 2 jobs
 
 No 2 workers claiming the same job
