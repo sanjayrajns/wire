@@ -41,3 +41,7 @@ Worker 2 ----> 4 jobs
 Worker 3 ----> 2 jobs
 
 No 2 workers claiming the same job
+Couldn't able to figure 
+## Why the queue is not able to catch the jobs and execute without requiring a restart
+
+PLease don't mind the code quality is sadge 
